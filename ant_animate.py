@@ -1,6 +1,6 @@
 import tkinter as tk
 from typing import List
-from PIL import Image, ImageTk 
+
 
 class Food:
     def __init__(self, master: tk.Canvas, color='green', radius=10, base_pos=0, coords=(17, 14)):
@@ -48,8 +48,6 @@ class Ant:
         self.delay = delay
         self.smooth_delay = int(delay / float(self.unit+5))
 
-        self.photo = self.canvas.master.photo
-        # self.image = self.canvas.master.image
 
         if isinstance(coords, list):
             self.coords_list = coords
@@ -57,11 +55,8 @@ class Ant:
         else:
             self.coords = coords
 
-        # self.ant = self.create_ant()
-        self.ant= self.create_ant_img()
+        self.ant = self.create_ant()
         self.canvas.tag_raise(self.ant)
-
-        print(self.canvas.master.image)
 
         self.canvas.after(1500, self.animate)
 
@@ -82,34 +77,30 @@ class Ant:
             fill=self.color
         )
 
-    def create_ant_img(self):
-        x, y = self.map_coords(coords=self.coords)
-        return self.canvas.create_image(x, y, anchor=tk.NW, image=self.photo)
-
     def smooth_move_up(self):
         if self.delta < 0:
-            print('up: ', self.delta)
+            # print('up: ', self.delta)
             self.canvas.move(self.ant, *(0, -1))
             self.delta += 1
             self.canvas.after(self.smooth_delay, self.smooth_move_up)
 
     def smooth_move_right(self):
         if self.delta > 0:
-            print('right: ', self.delta)
+            # print('right: ', self.delta)
             self.canvas.move(self.ant, *(1, 0))
             self.delta -= 1
             self.canvas.after(self.smooth_delay, self.smooth_move_right)
 
     def smooth_move_down(self):
         if self.delta > 0:
-            print('down: ', self.delta)
+            # print('down: ', self.delta)
             self.canvas.move(self.ant, *(0, 1))
             self.delta -= 1
             self.canvas.after(self.smooth_delay, self.smooth_move_down)
 
     def smooth_move_left(self):
         if self.delta < 0:
-            print('right: ', self.delta)
+            # print('right: ', self.delta)
             self.canvas.move(self.ant, *(-1, 0))
             self.delta += 1
             self.canvas.after(self.smooth_delay, self.smooth_move_left)
@@ -126,8 +117,6 @@ class Ant:
 
         dx = x - x_last
         dy = y - y_last
-        print('dx:', dx)
-        print('dy:', dy)
 
         if dx > 0:
             self.delta = self.unit
@@ -142,25 +131,25 @@ class Ant:
             self.delta = -self.unit
             self.smooth_move_up()
 
-        # self.canvas.move(self.ant, *(dx, dy))
+        self.canvas.move(self.ant, *(dx, dy))
         
 
-        # radius = self.radius * self.life[self.time_cur] / self.life_max
-        # if radius == 0:
-        #     color = 'white'
-        #     self.anim = False
-        # else:
-        #     color = 'black'
+        radius = self.radius * self.life[self.time_cur] / self.life_max
+        if radius == 0:
+            color = 'white'
+            self.anim = False
+        else:
+            color = 'black'
 
-        # self.canvas.coords(
-        #     self.ant,
-        #     x_last - radius,
-        #     y_last - radius,
-        #     x_last+ radius,
-        #     y_last + radius,
-        # )
+        self.canvas.coords(
+            self.ant,
+            x_last - radius,
+            y_last - radius,
+            x_last+ radius,
+            y_last + radius,
+        )
 
-        # self.canvas.itemconfig(self.ant, fill=color, outline="")
+        self.canvas.itemconfig(self.ant, fill=color, outline="")
         self.canvas.tag_raise(self.ant)
 
     def animate(self):
@@ -191,22 +180,16 @@ class Mainframe(tk.Frame):
             relief=tk.SOLID
         )
 
-        self.image = Image.open("ant1.png")
-        self.resized_image = self.image.resize((30,20), Image.ANTIALIAS)
-        self.photo = ImageTk.PhotoImage(self.resized_image)
-
         self.canvas.pack(padx=8, pady=8, side=tk.TOP)
         self.create_grid()
 
         for key in self.ants_dict:
             Ant(self.canvas, _id=key, radius=10, color='black', base_pos=self.step_size/2., coords=self.ants_dict[key]['coords'], life=self.ants_dict[key]['life'], pv=pv, delay=delay)
 
-
         for food_coord in self.food_coords:
             Food(self.canvas, base_pos=self.step_size/2., coords=food_coord)
 
         # self.master.bind("<Key>", self.ant.move)
-
 
     def create_grid(self):
         self.canvas.create_line(0, 1, 400, 1, fill='black', width=1)
